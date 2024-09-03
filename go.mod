@@ -1,6 +1,6 @@
-module subnetcalc
+module github.com/n3s0/subnetcalc
 
-go 1.18
+go 1.23
 
 require (
 	github.com/jedib0t/go-pretty/v6 v6.5.9

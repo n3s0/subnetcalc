@@ -1,9 +1,9 @@
 package main
 
 import (
-  "subnetcalc/snc"
+	"github.com/n3s0/subnetcalc/snc"
 )
 
 func main() {
-  snc.Execute()
+	snc.Execute()
 }
