@@ -32,6 +32,10 @@ Brief list of features this application provides are.
 
 ## Build
 
+### Go Version
+
+go 1.23
+
 ### From Source
 
 ```
