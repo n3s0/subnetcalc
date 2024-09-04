@@ -39,7 +39,7 @@ git clone https://gitprovider.com/n3s0/subnetcalc.git
 ```
 
 ```
-make install
+make
 ```
 
 ## Usage

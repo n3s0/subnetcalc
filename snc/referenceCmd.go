@@ -12,7 +12,7 @@ var reservedRangesTable bool
 var ethernetCableLengthChart bool
 
 var referenceCmd = &cobra.Command{
-	Use:     "[ref|reference]",
+	Use:     "reference",
 	Aliases: []string{"ref"},
 	Short:   "Reference charts",
 	Long:    "Reference for subnet charts, classful ranges, reserved ranges, and decimal to binary.",

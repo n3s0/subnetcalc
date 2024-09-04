@@ -6,7 +6,7 @@ import (
 
 var subnetCmd = &cobra.Command {
   Use: "subnet [subnet/CIDR]",
-  Short: "Calculate and display subnet and subnet ranges",
+  Short: "NOT COMPLETE: Calculate and display subnet and subnet ranges",
   Long: "Calculate and display subnet and subnet ranges.",
   Run: func(cmd *cobra.Command, args []string) {
   },
