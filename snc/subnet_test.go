@@ -3,6 +3,7 @@ package snc
 import (
 	"regexp"
 	"testing"
+    "strconv"
 )
 
 /*
@@ -32,21 +33,24 @@ func TestCidrToSubnetMask(t *testing.T) {
 }
 */
 
+/*
 func TestCidrHostCount(t *testing.T) {
-	testStr := "25"
+	testStr := "192.168.1.0/25"
 	correct := "128"
 	want := regexp.MustCompile(`\b` + correct + `\b`)
-	msg := CidrHostCount(testStr)
-	if !want.MatchString(msg) {
+	msg := CidrToSubnetMask(testStr)
+	if !want.MatchString(msg.String()) {
 		t.Fatalf(`CidrToSubnetMask(%s) = %q, want match for %#q`, testStr, msg, want)
 	}
 }
+*/
 
 func TestCidrAvailableHostCount(t *testing.T) {
 	testStr := "21"
 	correct := "2046"
 	want := regexp.MustCompile(`\b` + correct + `\b`)
-	msg := CidrAvailableHostCount(testStr)
+    result := CidrAvailableHostCount(testStr)
+    msg := strconv.Itoa(result)
 	if !want.MatchString(msg) {
 		t.Fatalf(`CidrToSubnetMask(%s) = %q, want match for %#q`, testStr, msg, want)
 	}

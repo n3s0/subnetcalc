@@ -38,11 +38,11 @@ go 1.23
 
 ### From Source
 
-```
+```sh
 git clone https://gitprovider.com/n3s0/subnetcalc.git
 ```
 
-```
+```sh
 make
 ```
 
@@ -62,7 +62,7 @@ subnetcalc reference --subnet-chart
 
 #### Output
 
-```
+```sh
 ┌──────────────────────────────────────────────────────────┐
 │ Subnet Chart                                             │
 ├──────┬─────────────────┬───────────────┬─────────────────┤
