@@ -28,71 +28,118 @@ number of things. But, we'll start with some of the basics first.
 /*
 Generate the subnet calculator chart
 */
-func SubetCalculatorResultsCidr(string) {
+func SubnetCalculatorResultsCidr(cidrInput string) {
+	ipAddressOutput := GetIpAddress(cidrInput)
+	subnetMaskOutput := CidrToSubnetMask(cidrInput)
+	cidrNotationOutput := GetCidrNotation(cidrInput)
+	ipClassOutput := "null"
+	networkAddressOutput := GetNetworkAddress(cidrInput)
+	usableHostRangeOutput := "null"
+	broadcastAddressOutput := GetBroadcastAddress(cidrInput)
+	totalHostsOutput := CidrHostCount(cidrNotationOutput)
+	usableHostsOutput := CidrAvailableHostCount(cidrNotationOutput)
+	ipTypeOutput := "null"
+	ipVersionOutput := "null"
+	arpaNameOutput := "null"
 
 	ct := table.NewWriter()
 	ct.SetOutputMirror(os.Stdout)
 	ct.SetTitle("Subnet Calculator Results")
-	ct.AppendHeader(table.Row{"CIDR", "Subnet Mask", "Address", "Wildcard"})
 	ct.AppendRows([]table.Row{
-		{"/32", "255.255.255.255", "1", "0.0.0.0"},
-		{"/31", "255.255.255.254", "2", "0.0.0.1"},
+		{"IP Address", ipAddressOutput},
+		{"Subnet Mask", subnetMaskOutput},
+		{"CIDR Notation", cidrNotationOutput},
+		{"IP Class", ipClassOutput},
+		{"Network Address", networkAddressOutput},
+		{"Usable Host IP Range", usableHostRangeOutput},
+		{"Broadcast Address", broadcastAddressOutput},
+		{"Total Hosts", totalHostsOutput},
+		{"Usable Hosts", usableHostsOutput},
+		{"IP Version", ipVersionOutput},
+		{"IP Type", ipTypeOutput},
+		{"in-addr.arpa", arpaNameOutput},
 	})
 	ct.SetStyle(table.StyleLight)
 	ct.Render()
 }
 
 /*
-Used to separate the user input for a CIDR address and return it.
+Pulls the IP Address given by user input
 */
-func SeparateAddressCidrInput(userString string) (net.IP, *net.IPNet) {
-	ip, subnet, err := net.ParseCIDR(userString)
+func GetIpAddress(userString string) string {
+	ip, _, err := net.ParseCIDR(userString)
 	if err != nil {
 		fmt.Printf("[!] Invalid CIDR string...\n")
 		fmt.Printf("[!] Error: %v\n", err)
 	}
 
-	return ip, subnet
+	address := ip.String()
+
+	return address
+}
+
+/*
+Pulls the CIDR notation for the subnet from the user input
+Will be adding this soon.
+*/
+func GetCidrNotation(userString string) string {
+	toSubnet := CidrToSubnetMask(userString)
+
+	cidr, err := SubnetMaskToCidr(toSubnet)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+	}
+
+	return cidr
 }
 
 /*
 Converts the CIDR notation to its subnet mask.
 */
-func CidrToSubnetMask(cidrAddressString string) net.IPMask {
+func CidrToSubnetMask(cidrAddressString string) string {
 	_, subnet, err := net.ParseCIDR(cidrAddressString)
 	if err != nil {
 		fmt.Printf("[!] Invalid CIDR string...\n")
 		fmt.Printf("[!] Error: %v\n", err)
 	}
 
-	subnetMask := subnet.Mask
+	mask := subnet.Mask
 
-	return subnetMask
+	netmask := fmt.Sprintf("%d.%d.%d.%d", mask[0], mask[1], mask[2], mask[3])
+
+	return netmask
 }
 
 /*
 Converts subnet mask to CIDR notation for the subnet mask.
 */
-func SubnetMaskToCidr(subnetMaskString string) (int, error) {
+func SubnetMaskToCidr(subnetMaskString string) (string, error) {
 	netmask := net.ParseIP(subnetMaskString).To4()
 	if netmask == nil {
-		return 0, fmt.Errorf("[!] Invalid Subnet mask")
+		fmt.Printf("[!] Invalid Subnet mask")
 	}
 
 	mask := net.IPv4Mask(netmask[0], netmask[1], netmask[2], netmask[3])
 
 	ones, _ := mask.Size()
 
-	return ones, nil
+	cidr := strconv.Itoa(ones)
+
+	return cidr, nil
 }
 
 /*
 Gets the full host count by subtracting it from the net bits.
 */
-func SubnetHostCount(subnet string) int {
-	netBits, err := SubnetMaskToCidr(subnet)
+func SubnetHostCount(subnetMaskString string) int {
+	bits, err := SubnetMaskToCidr(subnetMaskString)
 	if err != nil {
 		fmt.Printf("Error: %v", err)
+	}
+
+	netBits, err := strconv.Atoi(bits)
+	if err != nil {
+		fmt.Printf("%v", err)
 	}
 
 	hostBits := 32 - netBits
@@ -103,10 +150,12 @@ func SubnetHostCount(subnet string) int {
 /*
 Gets the full host count from bit count.
 */
-func CidrHostCount(cidr string) int {
-	netBitStrConv, _ := strconv.Atoi(cidr)
+func CidrHostCount(cidrAddressString string) string {
+	netBitStrConv, _ := strconv.Atoi(cidrAddressString)
 	netBits := 32 - netBitStrConv
-	hosts := int(math.Pow(float64(2), float64(netBits)))
+	hostsResult := int(math.Pow(float64(2), float64(netBits)))
+
+	hosts := strconv.Itoa(hostsResult)
 
 	return hosts
 }
@@ -114,14 +163,47 @@ func CidrHostCount(cidr string) int {
 /*
 Gets available host count from full host count.
 */
-func CidrAvailableHostCount(cidr string) int {
-	netBitStrConv, _ := strconv.Atoi(cidr)
+func CidrAvailableHostCount(cidrAddressString string) int {
+	netBitStrConv, _ := strconv.Atoi(cidrAddressString)
 	netBits := 32 - netBitStrConv
 	fullHosts := int(math.Pow(float64(2), float64(netBits)))
 
 	availHosts := fullHosts - 2
 
 	return availHosts
+}
+
+func GetNetworkAddress(cidrAddressString string) string {
+	_, subnet, err := net.ParseCIDR(cidrAddressString)
+	if err != nil {
+		fmt.Printf("%v", err)
+	}
+
+	netAddr := subnet.IP
+
+	network := netAddr.String()
+
+	return network
+}
+
+func GetBroadcastAddress(cidrAddressString string) string {
+	_, ipSubnet, err := net.ParseCIDR(cidrAddressString)
+	if err != nil {
+		fmt.Printf("Error with address given\n")
+		fmt.Printf("%v", err)
+	}
+
+	ip := ipSubnet.IP
+	mask := ipSubnet.Mask
+
+	bcAddress := make(net.IP, len(ip))
+	for i := 0; i < len(ip); i++ {
+		bcAddress[i] = ip[i] | ^mask[i]
+	}
+
+	broadcast := bcAddress.String()
+
+	return broadcast
 }
 
 /*
