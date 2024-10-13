@@ -34,12 +34,13 @@ func SubnetCalculatorResultsCidr(cidrInput string) {
 	cidrNotationOutput := GetCidrNotation(cidrInput)
 	ipClassOutput := "null"
 	networkAddressOutput := GetNetworkAddress(cidrInput)
-	usableHostRangeOutput := "null"
+	usableHostRangeStartOutput := "null"
+	usableHostRangeEndOutput := "null"
 	broadcastAddressOutput := GetBroadcastAddress(cidrInput)
 	totalHostsOutput := CidrHostCount(cidrNotationOutput)
 	usableHostsOutput := CidrAvailableHostCount(cidrNotationOutput)
-	ipTypeOutput := "null"
-	ipVersionOutput := "null"
+	ipTypeOutput := GetIpTypeCidr(cidrInput)
+	ipVersionOutput := GetIpVersionCidr(cidrInput)
 	arpaNameOutput := "null"
 
 	ct := table.NewWriter()
@@ -51,7 +52,8 @@ func SubnetCalculatorResultsCidr(cidrInput string) {
 		{"CIDR Notation", cidrNotationOutput},
 		{"IP Class", ipClassOutput},
 		{"Network Address", networkAddressOutput},
-		{"Usable Host IP Range", usableHostRangeOutput},
+		{"Usable Host Range Start", usableHostRangeStartOutput},
+		{"Usable Host Range End", usableHostRangeEndOutput},
 		{"Broadcast Address", broadcastAddressOutput},
 		{"Total Hosts", totalHostsOutput},
 		{"Usable Hosts", usableHostsOutput},
@@ -155,7 +157,7 @@ func CidrHostCount(cidrAddressString string) string {
 	netBits := 32 - netBitStrConv
 	hostsResult := int(math.Pow(float64(2), float64(netBits)))
 
-	hosts := strconv.Itoa(hostsResult)
+	hosts := strconv.Itoa(hostsResult - 1)
 
 	return hosts
 }
@@ -186,6 +188,38 @@ func GetNetworkAddress(cidrAddressString string) string {
 	return network
 }
 
+func GetIpVersionCidr(cidrAddressString string) string {
+	addr, _, err := net.ParseCIDR(cidrAddressString)
+	if err != nil {
+		fmt.Printf("%v", err)
+	}
+
+	if addr == nil {
+		fmt.Println("Invalid address")
+	}
+
+	if addr.To4() != nil {
+		return "IPv4"
+	} else {
+		return "IPv6"
+	}
+}
+
+func GetIpTypeCidr(cidrAddress string) string {
+	addr, _, err := net.ParseCIDR(cidrAddress)
+	if err != nil {
+		fmt.Printf("%v", err)
+	}
+
+	parsedIp := net.ParseIP(addr.String())
+
+	if parsedIp.IsPrivate() {
+		return "Private"
+	} else {
+		return "Public"
+	}
+}
+
 func GetBroadcastAddress(cidrAddressString string) string {
 	_, ipSubnet, err := net.ParseCIDR(cidrAddressString)
 	if err != nil {
@@ -197,6 +231,7 @@ func GetBroadcastAddress(cidrAddressString string) string {
 	mask := ipSubnet.Mask
 
 	bcAddress := make(net.IP, len(ip))
+
 	for i := 0; i < len(ip); i++ {
 		bcAddress[i] = ip[i] | ^mask[i]
 	}
@@ -204,24 +239,4 @@ func GetBroadcastAddress(cidrAddressString string) string {
 	broadcast := bcAddress.String()
 
 	return broadcast
-}
-
-/*
-Checks the IP address accessible to the Internet and returns it.
-
-DNS is required for this. It's also experimental. So it probably wont
-get used.
-*/
-func GetPrefferedInternetRoutableIP() net.IP {
-	//
-	tcpConn, err := net.Dial("tcp", "google.com:80")
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	defer tcpConn.Close()
-
-	addr := tcpConn.LocalAddr().(*net.TCPAddr)
-
-	return addr.IP
 }
